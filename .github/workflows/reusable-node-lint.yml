@@ -1,0 +1,45 @@
+name: 🔁 Reusable - Node lint
+
+# Reusable workflow that factorises the duplicated
+# "checkout + setup-node + npm ci + lint" block shared across
+# ci-tests.yml, ci-admin-tests.yml and ci-apps-tests.yml.
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        description: Directory of the package to lint
+        required: true
+        type: string
+      node-version:
+        description: Explicit Node.js version (falls back to node-version-file)
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          cache: npm
+          cache-dependency-path: ${{ inputs.working-directory }}/package-lock.json
+          node-version: ${{ inputs.node-version }}
+          node-version-file: ${{ inputs.node-version == '' && format('{0}/package.json', inputs.working-directory) || '' }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check code style and transpilation
+        run: npm run lint

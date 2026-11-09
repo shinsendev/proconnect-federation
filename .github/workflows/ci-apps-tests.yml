@@ -6,7 +6,21 @@ permissions:
   contents: read
 
 jobs:
-  global:
+  lint:
+    strategy:
+      fail-fast: false
+      matrix:
+        app:
+          - csmr-rie
+          - mock-data-provider
+          - mock-identity-provider
+          - mock-service-provider
+    uses: ./.github/workflows/reusable-node-lint.yml
+    with:
+      working-directory: ./${{ matrix.app }}
+      node-version: "24"
+
+  test:
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -33,9 +47,6 @@ jobs:
 
       - name: 📦 Install dependencies
         run: npm ci
-
-      - name: Check code style and transpilation
-        run: npm run lint
 
       - name: 🧪 Run tests
         run: npm test
