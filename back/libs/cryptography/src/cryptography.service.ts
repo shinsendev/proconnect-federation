@@ -11,7 +11,11 @@ import {
 import { ConfigService } from "#libs/config";
 import { Injectable } from "@nestjs/common";
 import { CryptographyConfig } from "./dto";
-import { LowEntropyArgumentException, PasswordHashFailure } from "./exceptions";
+import {
+  DecryptAuthenticationFailedException,
+  LowEntropyArgumentException,
+  PasswordHashFailure,
+} from "./exceptions";
 
 const NONCE_LENGTH = 12;
 const AUTHTAG_LENGTH = 16;
@@ -22,7 +26,7 @@ export const RANDOM_MIN_ENTROPY = 32;
 export class CryptographyService {
   /**
    * Encrypt the given data
-   * Current implementation use symetrical AES-256-GCM.
+   * Current implementation use symmetric AES-256-GCM.
    * @see https://crypto.stackexchange.com/a/18092
    * @param key the key to encrypt the data
    * @param data the data to encrypt
@@ -38,7 +42,7 @@ export class CryptographyService {
 
   /**
    * Decrypt the given cipher
-   * Current implementation use symetrical AES-256-GCM.
+   * Current implementation use symmetric AES-256-GCM.
    *
    * @see https://crypto.stackexchange.com/a/18092
    * @param key the key to encrypt the data
@@ -79,7 +83,7 @@ export class CryptographyService {
 
   /**
    * Encrypt the given string.
-   * Current implementation use symetrical AES-256-GCM.
+   * Current implementation use symmetric AES-256-GCM.
    * @see https://crypto.stackexchange.com/a/18092
    * @param key the key to encrypt the data
    * @param data the data to encrypt
@@ -101,7 +105,7 @@ export class CryptographyService {
 
   /**
    * Decrypt the given cipher.
-   * Current implementation use symetrical AES-256-GCM.
+   * Current implementation use symmetric AES-256-GCM.
    * @see https://crypto.stackexchange.com/a/18092
    * @param key the key to encrypt the data
    * @param cipher the cipher to decrypt
@@ -109,11 +113,7 @@ export class CryptographyService {
    */
   decrypt(key: string, cipher: Buffer): any {
     if (Buffer.byteLength(cipher) <= CIPHER_HEAD_LENGTH) {
-      /**
-       * @TODO #138 throw a specific exception
-       * @see https://gitlab.dev-franceconnect.fr/france-connect/fc/-/issues/138
-       */
-      throw new Error("Authentication failed !");
+      throw new DecryptAuthenticationFailedException();
     }
 
     const nonce = cipher.slice(0, 12);
@@ -131,11 +131,7 @@ export class CryptographyService {
     try {
       decipher.final();
     } catch {
-      /**
-       * @TODO #138 throw a specific exception
-       * @see https://gitlab.dev-franceconnect.fr/france-connect/fc/-/issues/138
-       */
-      throw new Error("Authentication failed !");
+      throw new DecryptAuthenticationFailedException();
     }
 
     return receivedPlaintext;
