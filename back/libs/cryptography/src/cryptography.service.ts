@@ -11,7 +11,11 @@ import {
 import { ConfigService } from "#libs/config";
 import { Injectable } from "@nestjs/common";
 import { CryptographyConfig } from "./dto";
-import { LowEntropyArgumentException, PasswordHashFailure } from "./exceptions";
+import {
+  DecryptAuthenticationFailedException,
+  LowEntropyArgumentException,
+  PasswordHashFailure,
+} from "./exceptions";
 
 const NONCE_LENGTH = 12;
 const AUTHTAG_LENGTH = 16;
@@ -109,11 +113,7 @@ export class CryptographyService {
    */
   decrypt(key: string, cipher: Buffer): any {
     if (Buffer.byteLength(cipher) <= CIPHER_HEAD_LENGTH) {
-      /**
-       * @TODO #138 throw a specific exception
-       * @see https://gitlab.dev-franceconnect.fr/france-connect/fc/-/issues/138
-       */
-      throw new Error("Authentication failed !");
+      throw new DecryptAuthenticationFailedException();
     }
 
     const nonce = cipher.slice(0, 12);
@@ -131,11 +131,7 @@ export class CryptographyService {
     try {
       decipher.final();
     } catch {
-      /**
-       * @TODO #138 throw a specific exception
-       * @see https://gitlab.dev-franceconnect.fr/france-connect/fc/-/issues/138
-       */
-      throw new Error("Authentication failed !");
+      throw new DecryptAuthenticationFailedException();
     }
 
     return receivedPlaintext;
