@@ -7,6 +7,11 @@ permissions:
   contents: read
 
 jobs:
+  lint:
+    uses: ./.github/workflows/reusable-node-lint.yml
+    with:
+      working-directory: ./admin
+
   global:
     runs-on: ubuntu-24.04
     defaults:
@@ -25,9 +30,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Check code style and transpilation
-        run: npm run lint
 
       - name: Run tests
         run: npm test
