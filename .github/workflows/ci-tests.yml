@@ -2,6 +2,11 @@ name: 💚 CI Tests
 
 on:
   push:
+    branches:
+      - main
+    tags:
+      - "*"
+  pull_request:
 
 permissions:
   contents: read
